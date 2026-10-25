@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 // Assets
 import schoolBuilding from './assets/building.jpeg';
 import schoolLogo from './assets/logo.jpg';
@@ -111,7 +114,7 @@ function App() {
 
   const loadStudentNotifications = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/student/notifications', {
+      const response = await fetch(`${API_BASE_URL}/student/notifications`, {
         method: 'GET',
         credentials: 'include',
         headers: { Accept: 'application/json' },
@@ -134,7 +137,7 @@ function App() {
   const markStudentNotificationRead = async (notificationId) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/student/notifications/${notificationId}/read`,
+        `${API_BASE_URL}/student/notifications/${notificationId}/read`,
         {
           method: 'PATCH',
           credentials: 'include',
