@@ -7,10 +7,8 @@ const cors = require("cors");
 
 const router = express.Router();
 
-router.use(cors());
-
 // 1. Health check — the Hub calls this to show the LMS as UP or DOWN.
-router.get("/db-check", async (req, res) => {
+router.get("/db-check", cors(), async (req, res) => {
   try {
     await req.app.locals.db.query("SELECT 1");
     return res.status(200).json({ ok: true });
@@ -22,7 +20,7 @@ router.get("/db-check", async (req, res) => {
 
 // 2. Courses of one student, found by student number (e.g. 2026-00234).
 // Must always return a LIST. No courses = [] with status 200 (never 404).
-router.get("/students/:id/courses", async (req, res) => {
+router.get("/students/:id/courses", cors(), async (req, res) => {
   try {
     const db = req.app.locals.db;
     const studentNumber = String(req.params.id || "").trim();
