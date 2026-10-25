@@ -1,0 +1,220 @@
+.instructor-grades {
+  width: 100%;
+  color: #172b4d;
+}
+
+.grades-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.grades-eyebrow {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.grades-header h1 {
+  margin: 7px 0;
+  color: #082b69;
+  font-size: clamp(26px, 3vw, 34px);
+}
+
+.grades-header p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.grades-refresh {
+  border: 1px solid #d7dfeb;
+  border-radius: 10px;
+  background: #fff;
+  color: #082b69;
+  padding: 11px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.grades-refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.grades-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.3fr) minmax(200px, 1fr) minmax(160px, 0.8fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.grades-toolbar > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.grades-toolbar label {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.grades-toolbar input,
+.grades-toolbar select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 12px;
+  border: 1px solid #d7dfeb;
+  border-radius: 9px;
+  background: #fff;
+  color: #172b4d;
+  font: inherit;
+}
+
+.grades-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.grades-summary article {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 19px;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgb(15 23 42 / 4%);
+}
+
+.grades-summary span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.grades-summary strong {
+  color: #082b69;
+  font-size: 29px;
+}
+
+.grades-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.grades-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.grades-table th,
+.grades-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf1f6;
+  vertical-align: top;
+  font-size: 13px;
+}
+
+.grades-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.grades-table td strong,
+.grades-table td small {
+  display: block;
+}
+
+.grades-table td strong {
+  color: #172b4d;
+}
+
+.grades-table td small {
+  margin-top: 5px;
+  color: #64748b;
+}
+
+.grades-feedback {
+  min-width: 160px;
+  max-width: 260px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.grades-status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.grades-status.is-graded {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.grades-status.is-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.grades-empty {
+  padding: 38px 20px;
+  color: #64748b;
+  text-align: center;
+}
+
+.grades-alert {
+  margin-bottom: 18px;
+  padding: 12px 15px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.grades-note {
+  margin-top: 14px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+@media (max-width: 850px) {
+  .grades-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .grades-course-select {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .grades-header {
+    flex-direction: column;
+  }
+
+  .grades-toolbar,
+  .grades-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .grades-course-select {
+    grid-column: auto;
+  }
+}
