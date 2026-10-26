@@ -2,6 +2,338 @@
   min-height: 100vh;
 }
 
+.portal-page {
+  --portal-ink: #142a38;
+  --portal-muted: #536a76;
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  overflow: hidden;
+  place-items: center;
+  padding: 42px 24px;
+  isolation: isolate;
+  background-image: var(--portal-background);
+  background-size: cover;
+  background-position: center 43%;
+  color: var(--portal-ink);
+}
+
+.portal-shade {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(112deg, rgba(9, 34, 49, 0.79), rgba(9, 34, 49, 0.47) 52%, rgba(9, 34, 49, 0.64));
+}
+
+.portal-content {
+  width: min(100%, 680px);
+  padding: 38px 42px 25px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 8px;
+  background: rgba(248, 250, 248, 0.96);
+  box-shadow: 0 24px 70px rgba(4, 23, 35, 0.3);
+  animation: portal-arrive 420ms ease-out both;
+}
+
+.portal-logo {
+  display: block;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  object-fit: contain;
+}
+
+.portal-eyebrow,
+.portal-subtitle {
+  margin: 0;
+  color: var(--portal-muted);
+  text-align: center;
+}
+
+.portal-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.portal-content > h1 {
+  margin: 9px 0 0;
+  color: var(--portal-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 600;
+  line-height: 1.12;
+  text-align: center;
+}
+
+.portal-subtitle {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.portal-roles {
+  display: grid;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.portal-role {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 76px;
+  padding: 12px 16px;
+  border: 1px solid #d9e1df;
+  border-radius: 5px;
+  background: #fff;
+  color: var(--portal-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.portal-role:hover {
+  transform: translateY(-1px);
+  border-color: #9eafaa;
+  background: #f5f8f5;
+}
+
+.portal-role:focus-visible,
+.portal-dialog button:focus-visible,
+.portal-dialog input:focus-visible {
+  outline: 3px solid #c59b3a;
+  outline-offset: 3px;
+}
+
+.portal-role-icon {
+  display: grid;
+  width: 42px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 4px;
+  background: #e9efec;
+  color: #305f51;
+  font-size: 21px;
+}
+
+.portal-role-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.portal-role-copy strong {
+  font-size: 15px;
+}
+
+.portal-role-copy small {
+  color: var(--portal-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.portal-role-arrow {
+  color: #547768;
+  font-size: 20px;
+  text-align: right;
+}
+
+.portal-footer {
+  margin-top: 24px;
+  color: #63736f;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13px;
+  text-align: center;
+}
+
+.portal-dialog-backdrop {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 24, 32, 0.62);
+  backdrop-filter: blur(3px);
+  animation: portal-fade-in 150ms ease-out both;
+}
+
+.portal-dialog {
+  position: relative;
+  width: min(100%, 440px);
+  padding: 32px;
+  border-radius: 7px;
+  background: #fbfcfa;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+}
+
+.portal-dialog-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: grid;
+  width: 36px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #52636a;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.portal-dialog-role {
+  color: #527363;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.portal-dialog h2 {
+  margin: 9px 30px 7px 0;
+  color: var(--portal-ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.portal-dialog > p {
+  margin: 0 0 24px;
+  color: var(--portal-muted);
+  font-size: 13px;
+}
+
+.portal-login-form {
+  display: grid;
+  gap: 16px;
+}
+
+.portal-login-form label {
+  display: grid;
+  gap: 7px;
+  color: #344d55;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.portal-login-form input {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid #cbd7d4;
+  border-radius: 4px;
+  background: #fff;
+  color: #142a38;
+}
+
+.portal-password-field {
+  position: relative;
+  display: flex;
+}
+
+.portal-password-field input {
+  padding-right: 62px;
+}
+
+.portal-password-toggle {
+  position: absolute;
+  top: 0;
+  right: 7px;
+  height: 46px;
+  padding: 0 7px;
+  border: 0;
+  background: transparent;
+  color: #48665a;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.portal-submit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  margin-top: 4px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 4px;
+  background: #245b4b;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.portal-submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.portal-submit span {
+  font-size: 19px;
+}
+
+.portal-dialog .login-error {
+  margin: 0;
+}
+
+@keyframes portal-arrive {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes portal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 520px) {
+  .portal-page {
+    padding: 20px 14px;
+  }
+
+  .portal-content {
+    padding: 28px 19px 20px;
+  }
+
+  .portal-role {
+    grid-template-columns: 40px minmax(0, 1fr) 20px;
+    gap: 11px;
+    min-height: 72px;
+    padding: 10px 11px;
+  }
+
+  .portal-role-icon {
+    width: 38px;
+  }
+
+  .portal-role-copy small {
+    font-size: 11px;
+  }
+
+  .portal-dialog {
+    padding: 28px 22px 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-content,
+  .portal-dialog-backdrop {
+    animation: none;
+  }
+
+  .portal-role {
+    transition: none;
+  }
+}
+
 .login-page {
   --navy: #082b69;
   --deep-navy: #06245a;

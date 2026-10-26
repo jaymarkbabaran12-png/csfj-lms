@@ -93,6 +93,8 @@ function App() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('admin');
   const [showPassword, setShowPassword] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const [loggedIn, setLoggedIn] = useState(false);
   const [activeMenu, setActiveMenu] = useState('Dashboard');
@@ -230,6 +232,7 @@ const handleLogin = async (event) => {
   }
 
   try {
+    setLoginLoading(true);
     const data = await authService.login(cleanUsername, password);
 
     if (!data?.success || !data?.user) {
@@ -246,11 +249,19 @@ const handleLogin = async (event) => {
       return;
     }
 
+    if (actualRole !== role) {
+      setAuthError(`This account is registered as ${actualRole}. Choose that portal to continue.`);
+      setLoggedIn(false);
+      await authService.logout();
+      return;
+    }
+
     setUsername(data.user.username);
     setRole(actualRole);
     setActiveMenu('Dashboard');
     setPassword('');
     setAuthError('');
+    setLoginOpen(false);
     setLoggedIn(true);
   } catch (error) {
     console.error('Login request failed:', error);
@@ -260,6 +271,8 @@ const handleLogin = async (event) => {
         ? 'Unable to connect to the server. Please check if the backend is running.'
         : error.message || 'Login failed. Please try again.'
     );
+  } finally {
+    setLoginLoading(false);
   }
 };
 
@@ -272,145 +285,134 @@ const handleLogout = async () => {
     setPassword('');
     setAuthError('');
     setActiveMenu('Dashboard');
+    setLoginOpen(false);
   } catch (error) {
     console.error('Logout request failed:', error);
     setAuthError(error.message || 'Unable to log out.');
    }
 };
 
-  /* ─── LOGIN PAGE ─── */
   /* ─── SESSION LOADING ─── */
   if (sessionLoading) {
     return <div className="app-loading">Loading CSFJ LMS...</div>;
   }
 
-  /* ─── LOGIN PAGE ─── */
   if (!loggedIn) {
     return (
-      <main className="login-page">
-        {/* Branding Panel */}
-        <section
-          className="branding-panel"
-          style={{ '--school-background': `url("${schoolBuilding}")` }}
-        >
-          <div className="branding-overlay" />
+      <main
+        className="portal-page"
+        style={{ '--portal-background': `url("${schoolBuilding}")` }}
+      >
+        <div className="portal-shade" />
+        <section className="portal-content" aria-labelledby="portal-title">
+          <img className="portal-logo" src={schoolLogo} alt="CSFJ" />
+          <p className="portal-eyebrow">Colegio De San Francisco Javier</p>
+          <h1 id="portal-title">Learning Management System</h1>
+          <p className="portal-subtitle">Choose your workspace</p>
 
-          <div className="branding-content">
-            <img
-              src={schoolLogo}
-              alt="Colegio De San Francisco Javier Logo"
-              className="branding-logo"
-            />
-            <h1 className="school-name">
-              COLEGIO DE SAN FRANCISCO
-              <br />
-              JAVIER
-            </h1>
-            <p className="school-motto">
-              Faith <span>•</span> Knowledge <span>•</span> Service
-            </p>
-            <div className="gold-divider">
-              <span /><span /><span />
-            </div>
-            <h2 className="brand-title">
-              CSFJ <span>LMS</span>
-            </h2>
-            <p className="brand-subtitle">Learning Management System</p>
-            <blockquote className="brand-quote">
-              "Building a better tomorrow
-              <br />
-              through quality education."
-            </blockquote>
-          </div>
-
-          <div className="branding-bottom-shape" />
-        </section>
-
-        {/* Login Panel */}
-        <section className="login-panel">
-          <header className="top-header">
-            <strong>CSFJ LMS</strong>
-            <span className="header-separator">|</span>
-            <span>Colegio De San Francisco Javier</span>
-          </header>
-
-          <div className="login-card">
-            <img
-              src={schoolLogo}
-              alt="CSFJ School Logo"
-              className="login-logo"
-            />
-            <h2>Welcome Back!</h2>
-            <p className="login-description">
-              Log in to your CSFJ LMS account
-            </p>
-
-            <form onSubmit={handleLogin}>
-            {authError && (
-  <div className="login-error" role="alert">
-    {authError}
-  </div>
-)}
-              <div className="input-group">
-                <span className="input-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="8" r="4" />
-                    <path d="M4 21v-2a8 8 0 0 1 16 0v2z" />
-                  </svg>
+          <div className="portal-roles">
+            {[
+              { id: 'student', title: 'Student', description: 'Courses, assignments, and grades', icon: '↗' },
+              { id: 'instructor', title: 'Instructor', description: 'Teaching, submissions, and classes', icon: '▤' },
+              { id: 'admin', title: 'Administrator', description: 'People, courses, and academic operations', icon: '⌘' },
+            ].map((portal) => (
+              <button
+                className="portal-role"
+                key={portal.id}
+                type="button"
+                onClick={() => {
+                  setRole(portal.id);
+                  setAuthError('');
+                  setPassword('');
+                  setLoginOpen(true);
+                }}
+              >
+                <span className="portal-role-icon" aria-hidden="true">{portal.icon}</span>
+                <span className="portal-role-copy">
+                  <strong>{portal.title}</strong>
+                  <small>{portal.description}</small>
                 </span>
-                <input
-                  type="text"
-                  placeholder="Username"
-                  aria-label="Username"
-                  autoComplete="username"
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                />
-              </div>
-
-              <div className="input-group">
-                <span className="input-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24">
-                    <rect x="4" y="10" width="16" height="11" rx="2" />
-                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                  </svg>
-                </span>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
-                  aria-label="Password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-
-              <button type="submit" className="login-button">
-                <span>Login</span>
-                <span>→</span>
+                <span className="portal-role-arrow" aria-hidden="true">→</span>
               </button>
-            </form>
-
-            <div className="card-footer">
-              <div className="footer-brand">
-                <span /><strong>CSFJ LMS</strong><span />
-              </div>
-              <p className="security-note">Secure • Reliable • Accessible</p>
-            </div>
+            ))}
           </div>
 
-          <footer className="page-footer">
-            Colegio De San Francisco Javier
-          </footer>
+          <footer className="portal-footer">Faith · Knowledge · Service</footer>
         </section>
+
+        {loginOpen && (
+          <div
+            className="portal-dialog-backdrop"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget && !loginLoading) {
+                setLoginOpen(false);
+                setAuthError('');
+              }
+            }}
+          >
+            <section
+              className="portal-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="login-title"
+            >
+              <button
+                className="portal-dialog-close"
+                type="button"
+                aria-label="Close sign in"
+                disabled={loginLoading}
+                onClick={() => {
+                  setLoginOpen(false);
+                  setAuthError('');
+                }}
+              >
+                ×
+              </button>
+              <span className="portal-dialog-role">{role}</span>
+              <h2 id="login-title">Sign in to your workspace</h2>
+              <p>Use your CSFJ LMS account to continue.</p>
+
+              <form className="portal-login-form" onSubmit={handleLogin}>
+                {authError && <div className="login-error" role="alert">{authError}</div>}
+                <label>
+                  Username
+                  <input
+                    type="text"
+                    autoComplete="username"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    required
+                    autoFocus
+                  />
+                </label>
+                <label>
+                  Password
+                  <span className="portal-password-field">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="portal-password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </span>
+                </label>
+                <button className="portal-submit" type="submit" disabled={loginLoading}>
+                  {loginLoading ? 'Signing in...' : 'Continue to dashboard'}
+                  {!loginLoading && <span aria-hidden="true">→</span>}
+                </button>
+              </form>
+            </section>
+          </div>
+        )}
       </main>
     );
   }
