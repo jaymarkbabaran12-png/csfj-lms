@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: csfj-lms-api
+    runtime: node
+    rootDir: backend
+    plan: standard
+    buildCommand: npm install
+    preDeployCommand: npm run migrate:hub-integration
+    startCommand: npm start
+    healthCheckPath: /api/db-check
+    autoDeploy: true
+    disk:
+      name: learning-materials
+      mountPath: /opt/render/project/src/backend/uploads/learning-materials
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: HUB_API_KEY
+        generateValue: true
+      - key: HUB_STUDENT_RECORDS_API_KEY
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 3306
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: FRONTEND_URL
+        value: https://csfj-lms-frontend.onrender.com
+
+  - type: web
+    name: csfj-lms-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_URL
+        value: https://csfj-lms-api.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

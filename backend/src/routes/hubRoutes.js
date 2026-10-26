@@ -4,6 +4,7 @@
 
 const express = require("express");
 const cors = require("cors");
+const { requireHubApiKey } = require("../middleware/hubApiKey");
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ router.get("/db-check", cors(), async (req, res) => {
 
 // 2. Courses of one student, found by student number (e.g. 2026-00234).
 // Must always return a LIST. No courses = [] with status 200 (never 404).
-router.get("/students/:id/courses", cors(), async (req, res) => {
+router.get("/students/:id/courses", cors(), requireHubApiKey, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const studentNumber = String(req.params.id || "").trim();

@@ -11,6 +11,7 @@ const instructorRoutes = require("./src/routes/instructorRoutes");
 const academicRoutes = require("./src/routes/academicRoutes");
 const studentRoutes = require("./src/routes/studentRoutes");
 const hubRoutes = require("./src/routes/hubRoutes");
+const hubIntegrationRoutes = require("./src/routes/hubIntegrationRoutes");
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
@@ -31,10 +32,9 @@ const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
   .filter(Boolean);
 
 // ==========================================
-// 0. IT DEPARTMENT HUB ENDPOINTS (public, no login)
-// GET /api/db-check
-// GET /api/students/:id/courses
-// Mounted first so the Hub's own open CORS applies.
+// 0. IT DEPARTMENT HUB HEALTH AND COURSE LOOKUP
+// Student-specific course data requires the Hub API key.
+// GET /api/db-check remains public for availability monitoring.
 // ==========================================
 app.use("/api", hubRoutes);
 
@@ -61,6 +61,7 @@ app.use(
 // ==========================================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api/integration", hubIntegrationRoutes);
 
 // ==========================================
 // 3. SESSION MIDDLEWARE
@@ -275,6 +276,24 @@ async function startServer() {
     });
   } catch (error) {
     console.error("Unable to start the server:", error.message);
+
+    if (error.code === "ER_ACCESS_DENIED_ERROR") {
+      console.error(
+        "Check DB_USER and DB_PASSWORD in backend/.env. Prefer a dedicated MySQL user with access to DB_NAME instead of root."
+      );
+    } else if (
+      error.code === "ECONNREFUSED" ||
+      error.code === "ENOTFOUND" ||
+      error.code === "ETIMEDOUT"
+    ) {
+      console.error(
+        "Check that MySQL is running and that DB_HOST and DB_PORT point to the reachable database server."
+      );
+    } else if (error.code === "ER_BAD_DB_ERROR") {
+      console.error(
+        "The configured DB_NAME does not exist. Create the database or correct DB_NAME in backend/.env."
+      );
+    }
 
     await pool.end();
     process.exit(1);

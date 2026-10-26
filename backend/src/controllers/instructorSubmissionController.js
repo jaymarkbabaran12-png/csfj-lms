@@ -1,3 +1,5 @@
+const { trySyncStudentGradesToHub } = require("../services/hubGradeSync");
+
 // GET /api/instructor/courses/:courseId/submissions
 async function getCourseSubmissions(req, res, next) {
   try {
@@ -108,6 +110,7 @@ async function gradeSubmission(req, res, next) {
     const [rows] = await db.execute(
       `SELECT
           ass.id,
+          ass.student_id,
           a.points AS max_points
        FROM assignment_submissions ass
        INNER JOIN assignments a
@@ -145,9 +148,15 @@ async function gradeSubmission(req, res, next) {
       [score, feedback || null, submissionId]
     );
 
+    const hubGradeSync = await trySyncStudentGradesToHub(
+      db,
+      rows[0].student_id
+    );
+
     return res.json({
       success: true,
       message: "Submission graded successfully.",
+      hub_grade_sync: hubGradeSync.status,
     });
   } catch (error) {
     next(error);
