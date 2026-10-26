@@ -23,9 +23,9 @@ function formatFileSize(bytes) {
   return `${(size / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-export default function Modules() {
+export default function Modules({ initialCourseId = '' }) {
   const [courses, setCourses] = useState([]);
-  const [courseId, setCourseId] = useState('');
+  const [courseId, setCourseId] = useState(String(initialCourseId || ''));
   const [modules, setModules] = useState([]);
   const [materialsByModule, setMaterialsByModule] = useState({});
   const [selectedFiles, setSelectedFiles] = useState({});
@@ -62,7 +62,10 @@ export default function Modules() {
         setCourses(list);
 
         if (list.length > 0) {
-          setCourseId(String(list[0].id));
+          const requestedCourse = list.find(
+            (course) => String(course.id) === String(initialCourseId)
+          );
+          setCourseId(String(requestedCourse?.id || list[0].id));
         }
       } catch (err) {
         if (!cancelled) {

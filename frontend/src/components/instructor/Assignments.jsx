@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiRequest } from '../../services/api';
 import './Assignments.css';
 
-export default function Assignments() {
+export default function Assignments({ initialCourseId = '' }) {
   const [courses, setCourses] = useState([]);
   const [modules, setModules] = useState([]);
   const [assignments, setAssignments] = useState([]);
-  const [courseId, setCourseId] = useState('');
+  const [courseId, setCourseId] = useState(String(initialCourseId || ''));
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

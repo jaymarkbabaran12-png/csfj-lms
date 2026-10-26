@@ -99,6 +99,7 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [selectedCourseId, setSelectedCourseId] = useState(null);
+  const [selectedInstructorCourseId, setSelectedInstructorCourseId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [search, setSearch] = useState('');
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -675,15 +676,20 @@ const handleLogout = async () => {
   ) : activeMenu === 'Students List' && currentRole === 'instructor' ? (
     <StudentList />
   ) : activeMenu === 'Modules' && currentRole === 'instructor' ? (
-    <Modules />
+    <Modules initialCourseId={selectedInstructorCourseId} />
   ) : activeMenu === 'Assignments' && currentRole === 'instructor' ? (
-    <Assignments />
+    <Assignments initialCourseId={selectedInstructorCourseId} />
   ) : activeMenu === 'Grades' && currentRole === 'instructor' ? (
     <Grades />
   ) : activeMenu === 'Submissions' && currentRole === 'instructor' ? (
     <Submissions />
   ) : activeMenu === 'My Courses' && currentRole === 'instructor' ? (
-    <InstructorMyCourses />
+    <InstructorMyCourses
+      onSelectCourse={(courseId, menu) => {
+        setSelectedInstructorCourseId(String(courseId));
+        setActiveMenu(menu);
+      }}
+    />
   ) : (
     <MenuPlaceholder
       activeMenu={activeMenu}

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import apiRequest from '../../services/api';
 import './InstructorMyCourses.css';
 
-export default function InstructorMyCourses() {
+export default function InstructorMyCourses({ onSelectCourse }) {
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -228,14 +228,31 @@ export default function InstructorMyCourses() {
               </p>
 
               <div className="instructor-course-card-footer">
-                <span>Enrolled Students</span>
+                <div>
+                  <strong>
+                    {Math.max(0, Number(course.enrolled_students) || 0)}
+                  </strong>
+                  <span>Enrolled students</span>
+                </div>
+                <span className="instructor-course-enrollment-mark" aria-hidden="true">●</span>
+              </div>
 
-                <strong>
-                  {Math.max(
-                    0,
-                    Number(course.enrolled_students) || 0
-                  )}
-                </strong>
+              <div className="instructor-course-actions">
+                <button
+                  type="button"
+                  onClick={() => onSelectCourse?.(course.id, 'Modules')}
+                  disabled={!onSelectCourse}
+                >
+                  Manage modules <span aria-hidden="true">→</span>
+                </button>
+                <button
+                  type="button"
+                  className="instructor-course-secondary-action"
+                  onClick={() => onSelectCourse?.(course.id, 'Assignments')}
+                  disabled={!onSelectCourse}
+                >
+                  Assignments
+                </button>
               </div>
             </article>
           ))}
