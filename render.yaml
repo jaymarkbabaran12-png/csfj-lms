@@ -3,16 +3,12 @@ services:
     name: csfj-lms-api
     runtime: node
     rootDir: backend
-    plan: standard
+    plan: free
     buildCommand: npm install
     preDeployCommand: npm run migrate:hub-integration
     startCommand: npm start
     healthCheckPath: /api/db-check
     autoDeploy: true
-    disk:
-      name: learning-materials
-      mountPath: /opt/render/project/src/backend/uploads/learning-materials
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production

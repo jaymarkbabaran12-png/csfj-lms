@@ -10,7 +10,7 @@ This repository includes a Render Blueprint in `render.yaml` for the Express API
 4. Confirm the service hosts match the names in `render.yaml`. If Render assigns different hosts, update `FRONTEND_URL` on `csfj-lms-api` and `VITE_API_URL` on `csfj-lms-frontend` to the actual HTTPS service URLs, then redeploy both services.
 5. After the API deploys and connects to MySQL, run `npm run migrate:hub-integration` from `backend/` against the same hosted database. This can be done from a shell with the production database environment configured.
 
-The Blueprint generates `SESSION_SECRET` and `HUB_API_KEY`. Keep both private. The API service uses a persistent disk for uploaded learning materials; that requires a paid Render web-service plan. The API health check uses `/api/db-check`, so Render only marks it healthy after the database responds.
+The Blueprint generates `SESSION_SECRET` and `HUB_API_KEY`. Keep both private. The API service uses Render's free compute plan to avoid a billing requirement. Free services have an ephemeral filesystem and may sleep when idle, so uploaded learning-material files can be lost on restart or deploy. For persistent uploads, use an object-storage service or upgrade the backend to a paid plan and attach persistent storage. The API health check uses `/api/db-check`, so Render only marks it healthy after the database responds.
 
 ## Verify deployment
 
