@@ -5,8 +5,7 @@ services:
     rootDir: backend
     plan: free
     buildCommand: npm install
-    preDeployCommand: npm run migrate:hub-integration
-    startCommand: npm start
+    startCommand: npm run migrate:hub-integration && npm start
     healthCheckPath: /api/db-check
     autoDeploy: true
     envVars:

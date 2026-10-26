@@ -6,7 +6,7 @@ This repository includes a Render Blueprint in `render.yaml` for the Express API
 
 1. Push this repository to GitHub or GitLab, including the deployment configuration and the backend integration changes you want deployed. Do not commit `.env` files or secrets.
 2. Provision a publicly reachable MySQL database with SSL support. Render cannot connect to MySQL running on your development computer. Record its host, port, database name, username, and password.
-3. In Render, create a Blueprint from the connected repository and provide `DB_HOST`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` when prompted. `DB_PORT` defaults to `3306`; `DB_SSL` is enabled.
+3. In Render, create a Blueprint from the connected repository and provide `DB_HOST`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` when prompted. `DB_PORT` defaults to `3306`; `DB_SSL` is enabled. The API start command runs the idempotent Hub schema migration before starting Express.
 4. Confirm the service hosts match the names in `render.yaml`. If Render assigns different hosts, update `FRONTEND_URL` on `csfj-lms-api` and `VITE_API_URL` on `csfj-lms-frontend` to the actual HTTPS service URLs, then redeploy both services.
 5. After the API deploys and connects to MySQL, run `npm run migrate:hub-integration` from `backend/` against the same hosted database. This can be done from a shell with the production database environment configured.
 
