@@ -17,3 +17,4 @@ The Blueprint generates `SESSION_SECRET` and `HUB_API_KEY`. Keep both private. T
 - Open `https://csfj-lms-api.onrender.com/api/health` and confirm it returns a successful JSON response.
 - Open the frontend service URL, sign in, and verify the browser requests go to the API service URL.
 - Verify the API service is healthy and `/api/db-check` returns `{ "ok": true }`.
+- When deploying login account recovery changes, push them to the branch connected to Render and wait for both services to finish deploying. Then run `npm run setup:login-accounts` from `backend/` against the same production database configured on the API service. The command does not create accounts during deployment; see [Login account recovery](./README.md#login-account-recovery) for the safe interactive setup instructions.
