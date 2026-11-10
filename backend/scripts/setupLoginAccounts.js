@@ -1,16 +1,7 @@
 require("dotenv").config();
 
 const bcrypt = require("bcryptjs");
-const mysql = require("mysql2/promise");
-
-const dbConfig = {
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "Csfj_lms",
-  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
-};
+const pool = require("../src/config/database");
 
 function prompt(question, { secret = false } = {}) {
   if (!process.stdin.isTTY || typeof process.stdin.setRawMode !== "function") {
@@ -122,132 +113,160 @@ async function promptPassword(label) {
   return password;
 }
 
+async function promptNewIdentity(label) {
+  const identity = {
+    username: await promptRequired(`${label} username`, 100),
+    fullName: await promptRequired(`${label} full name`, 150),
+    email: (await promptRequired(`${label} email`, 150)).toLowerCase(),
+  };
+
+  validateUsername(identity.username, `${label} username`);
+  validateEmail(identity.email, `${label} email`);
+
+  return identity;
+}
+
+async function promptExistingUsername(role) {
+  const label = role === "admin" ? "Existing admin username" : "Existing instructor username";
+  const username = (await prompt(`${label}: `)).trim();
+
+  validateUsername(username, label);
+
+  return username;
+}
+
 async function main() {
   let db;
   let transactionStarted = false;
 
   try {
-    db = await mysql.createConnection(dbConfig);
+    db = await pool.getConnection();
 
-    console.log("This will reset one existing admin password and create one instructor and one student account.");
-    console.log("No passwords are displayed or saved in this script.");
-
-    const adminUsername = (await prompt("Existing admin username: ")).trim();
-    validateUsername(adminUsername, "Admin username");
-
-    const [admins] = await db.execute(
-      "SELECT id FROM users WHERE username = ? AND role = 'admin' LIMIT 1",
-      [adminUsername]
+    const [existingUsers] = await db.execute(
+      "SELECT id FROM users LIMIT 1"
     );
 
-    if (admins.length !== 1) {
-      throw new Error("No admin account with that username was found.");
+    let admin;
+    let instructor;
+    let createInstructor = false;
+
+    if (existingUsers.length === 0) {
+      console.log("The users table is empty. This will create the first admin and instructor accounts.");
+
+      admin = await promptNewIdentity("Admin");
+      instructor = await promptNewIdentity("Instructor");
+
+      if (
+        admin.username.toLowerCase() === instructor.username.toLowerCase() ||
+        admin.email === instructor.email
+      ) {
+        throw new Error("Admin and instructor must have different usernames and email addresses.");
+      }
+
+      admin.password = await promptPassword("Admin password");
+      instructor.password = await promptPassword("Instructor password");
+      createInstructor = true;
+    } else {
+      const adminUsername = await promptExistingUsername("admin");
+      const [admins] = await db.execute(
+        "SELECT id FROM users WHERE username = ? AND role = 'admin' LIMIT 1",
+        [adminUsername]
+      );
+
+      if (admins.length !== 1) {
+        throw new Error("No admin account with that username was found.");
+      }
+
+      admin = {
+        id: admins[0].id,
+        password: await promptPassword("New admin password"),
+      };
+
+      const [instructors] = await db.execute(
+        "SELECT username FROM users WHERE role = 'instructor' ORDER BY username"
+      );
+
+      if (instructors.length > 0) {
+        const instructorUsername = await promptExistingUsername("instructor");
+        const [matches] = await db.execute(
+          "SELECT id FROM users WHERE username = ? AND role = 'instructor' LIMIT 1",
+          [instructorUsername]
+        );
+
+        if (matches.length !== 1) {
+          throw new Error("No instructor account with that username was found.");
+        }
+
+        instructor = {
+          id: matches[0].id,
+          password: await promptPassword("New instructor password"),
+        };
+      } else {
+        console.log("No instructor account exists. A new instructor will be created.");
+        instructor = await promptNewIdentity("Instructor");
+        instructor.password = await promptPassword("Instructor password");
+        createInstructor = true;
+      }
+
+      if (
+        !createInstructor &&
+        admin.id === instructor.id
+      ) {
+        throw new Error("Admin and instructor must be different accounts.");
+      }
     }
 
-    const instructor = {
-      username: await promptRequired("New instructor username", 100),
-      fullName: await promptRequired("Instructor full name", 150),
-      email: (await promptRequired("Instructor email", 150)).toLowerCase(),
-    };
-    validateUsername(instructor.username, "Instructor username");
-    validateEmail(instructor.email, "Instructor email");
-    instructor.password = await promptPassword("Instructor password");
-
-    const student = {
-      username: await promptRequired("New student username", 100),
-      studentId: await promptRequired("Student ID", 50),
-      fullName: await promptRequired("Student full name", 150),
-      email: (await promptRequired("Student email", 150)).toLowerCase(),
-      course: await promptRequired("Student course", 100),
-      yearLevel: await promptRequired("Student year level", 20),
-    };
-    validateUsername(student.username, "Student username");
-    validateEmail(student.email, "Student email");
-    student.password = await promptPassword("Student password");
-
-    if (
-      new Set([adminUsername, instructor.username, student.username]).size !== 3
-    ) {
-      throw new Error("Each account must have a different username.");
-    }
-
-    if (instructor.email === student.email) {
-      throw new Error("Instructor and student must have different email addresses.");
-    }
-
-    const [duplicateUsers] = await db.execute(
-      "SELECT id FROM users WHERE username IN (?, ?) LIMIT 1",
-      [instructor.username, student.username]
-    );
-
-    if (duplicateUsers.length) {
-      throw new Error("An instructor or student username already exists.");
-    }
-
-    const [duplicateEmails] = await db.execute(
-      "SELECT id FROM users WHERE LOWER(email) IN (?, ?) LIMIT 1",
-      [instructor.email, student.email]
-    );
-
-    if (duplicateEmails.length) {
-      throw new Error("An instructor or student email address is already in use.");
-    }
-
-    const [duplicateStudentIds] = await db.execute(
-      "SELECT id FROM users WHERE student_id = ? LIMIT 1",
-      [student.studentId]
-    );
-
-    if (duplicateStudentIds.length) {
-      throw new Error("That student ID already exists.");
-    }
-
-    const newAdminPassword = await promptPassword("New admin password");
-    const [adminPassword, instructorPassword, studentPassword] =
-      await Promise.all([
-        bcrypt.hash(newAdminPassword, 12),
-        bcrypt.hash(instructor.password, 12),
-        bcrypt.hash(student.password, 12),
-      ]);
+    const passwordHashes = await Promise.all([
+      bcrypt.hash(admin.password, 12),
+      bcrypt.hash(instructor.password, 12),
+    ]);
 
     await db.beginTransaction();
     transactionStarted = true;
 
-    const [adminUpdate] = await db.execute(
-      "UPDATE users SET password = ? WHERE id = ? AND role = 'admin'",
-      [adminPassword, admins[0].id]
-    );
+    if (existingUsers.length === 0) {
+      await db.execute(
+        `INSERT INTO users (username, password, role, full_name, email)
+         VALUES (?, ?, 'admin', ?, ?)`,
+        [admin.username, passwordHashes[0], admin.fullName, admin.email]
+      );
+    } else {
+      const [adminUpdate] = await db.execute(
+        "UPDATE users SET password = ? WHERE id = ? AND role = 'admin'",
+        [passwordHashes[0], admin.id]
+      );
 
-    if (adminUpdate.affectedRows !== 1) {
-      throw new Error("The admin password was not updated.");
+      if (adminUpdate.affectedRows !== 1) {
+        throw new Error("The admin password was not updated.");
+      }
     }
 
-    await db.execute(
-      `INSERT INTO users
-        (username, password, role, full_name, email)
-       VALUES (?, ?, 'instructor', ?, ?)`,
-      [instructor.username, instructorPassword, instructor.fullName, instructor.email]
-    );
+    if (createInstructor) {
+      await db.execute(
+        `INSERT INTO users (username, password, role, full_name, email)
+         VALUES (?, ?, 'instructor', ?, ?)`,
+        [
+          instructor.username,
+          passwordHashes[1],
+          instructor.fullName,
+          instructor.email,
+        ]
+      );
+    } else {
+      const [instructorUpdate] = await db.execute(
+        "UPDATE users SET password = ? WHERE id = ? AND role = 'instructor'",
+        [passwordHashes[1], instructor.id]
+      );
 
-    await db.execute(
-      `INSERT INTO users
-        (username, password, role, student_id, full_name, email, course, year_level)
-       VALUES (?, ?, 'student', ?, ?, ?, ?, ?)`,
-      [
-        student.username,
-        studentPassword,
-        student.studentId,
-        student.fullName,
-        student.email,
-        student.course,
-        student.yearLevel,
-      ]
-    );
+      if (instructorUpdate.affectedRows !== 1) {
+        throw new Error("The instructor password was not updated.");
+      }
+    }
 
     await db.commit();
     transactionStarted = false;
 
-    console.log("Account setup completed. You can now sign in as admin, instructor, or student.");
+    console.log("Admin and instructor account setup completed.");
   } catch (error) {
     if (db && transactionStarted) {
       try {
@@ -257,8 +276,8 @@ async function main() {
       }
     }
 
-    if (error.code === "ER_DUP_ENTRY") {
-      console.error("Account setup failed: A username, email, or student ID is already in use.");
+    if (error.code === "ER_DUP_ENTRY" || error.code === "23505") {
+      console.error("Account setup failed: A username or email is already in use.");
     } else {
       console.error("Account setup failed:", error.message);
     }
@@ -267,11 +286,17 @@ async function main() {
   } finally {
     if (db) {
       try {
-        await db.end();
+        db.release();
       } catch (error) {
         console.error("Database connection close failed:", error.message);
         process.exitCode = 1;
       }
+    }
+    try {
+      await pool.end();
+    } catch (error) {
+      console.error("Database pool close failed:", error.message);
+      process.exitCode = 1;
     }
   }
 }

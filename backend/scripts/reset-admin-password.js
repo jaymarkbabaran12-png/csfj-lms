@@ -1,16 +1,8 @@
 require("dotenv").config();
 
-const mysql = require("mysql2/promise");
 const bcrypt = require("bcryptjs");
 const readline = require("readline");
-
-const dbConfig = {
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "Csfj_lms",
-};
+const pool = require("../src/config/database");
 
 async function main() {
   const rl = readline.createInterface({
@@ -35,7 +27,7 @@ async function main() {
       throw new Error("Passwords do not match.");
     }
 
-    db = await mysql.createConnection(dbConfig);
+    db = await pool.getConnection();
 
     const [admins] = await db.execute(
       "SELECT id, username, role FROM users WHERE username = ? AND role = ?",
@@ -63,7 +55,8 @@ async function main() {
     console.log(`Account: ${admins[0].username} (ID ${admins[0].id})`);
     console.log("You can now log in using the new password.");
   } finally {
-    if (db) await db.end();
+    if (db) db.release();
+    await pool.end();
     rl.close();
   }
 }

@@ -1,6 +1,9 @@
 require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
 
-const mysql = require("mysql2/promise");
+const pool = require("../src/config/database");
+const duplicateSubjectClause = pool.isPostgres
+  ? "ON CONFLICT (program_id, subject_code) DO NOTHING"
+  : "ON DUPLICATE KEY UPDATE id = id";
 
 const programs = {
   BSBA: [
@@ -175,13 +178,7 @@ function subjectCode(programCode, year, semester, index) {
 }
 
 async function main() {
-  const db = await mysql.createConnection({
-    host: process.env.DB_HOST || "localhost",
-    port: Number(process.env.DB_PORT || 3306),
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "",
-    database: process.env.DB_NAME || "Csfj_lms",
-  });
+  const db = await pool.getConnection();
 
   let inserted = 0;
   let skipped = 0;
@@ -222,7 +219,7 @@ async function main() {
                 (program_id, subject_code, subject_name, description,
                  year_level, semester, units)
                VALUES (?, ?, ?, ?, ?, ?, ?)
-               ON DUPLICATE KEY UPDATE id = id`,
+               ${duplicateSubjectClause}`,
               [
                 programId,
                 code,
@@ -247,7 +244,7 @@ async function main() {
                 (program_id, subject_code, subject_name, description,
                  year_level, semester, units)
                VALUES (?, ?, ?, ?, ?, ?, ?)
-               ON DUPLICATE KEY UPDATE id = id`,
+               ${duplicateSubjectClause}`,
               [
                 programId,
                 code,
@@ -275,7 +272,8 @@ async function main() {
     await db.rollback();
     throw error;
   } finally {
-    await db.end();
+    db.release();
+    await pool.end();
   }
 }
 

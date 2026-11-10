@@ -162,7 +162,7 @@ async function createCurriculumSubject(req, res, next) {
       },
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "ER_DUP_ENTRY" || error.code === "23505") {
       return res.status(409).json({
         success: false,
         message: "A duplicate subject code already exists.",
@@ -253,7 +253,7 @@ async function updateCurriculumSubject(req, res, next) {
       },
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "ER_DUP_ENTRY" || error.code === "23505") {
       return res.status(409).json({
         success: false,
         message: "A duplicate subject code already exists.",
@@ -293,7 +293,7 @@ async function deleteCurriculumSubject(req, res, next) {
       message: "Curriculum subject deleted successfully.",
     });
   } catch (error) {
-    if (error.code === "ER_ROW_IS_REFERENCED_2") {
+    if (error.code === "ER_ROW_IS_REFERENCED_2" || error.code === "23503") {
       return res.status(409).json({
         success: false,
         message: "This subject is referenced by other records and cannot be deleted.",

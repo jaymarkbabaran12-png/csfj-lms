@@ -92,9 +92,9 @@ async function getDashboardStats(req, res, next) {
     const [userRows] = await db.query(`
       SELECT
         COUNT(*) AS totalUsers,
-        COALESCE(SUM(role = 'admin'), 0) AS totalAdmins,
-        COALESCE(SUM(role = 'instructor'), 0) AS totalInstructors,
-        COALESCE(SUM(role = 'student'), 0) AS totalStudents
+        COALESCE(SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END), 0) AS totalAdmins,
+        COALESCE(SUM(CASE WHEN role = 'instructor' THEN 1 ELSE 0 END), 0) AS totalInstructors,
+        COALESCE(SUM(CASE WHEN role = 'student' THEN 1 ELSE 0 END), 0) AS totalStudents
       FROM users
     `);
 
@@ -341,7 +341,7 @@ async function createUser(req, res, next) {
       },
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "ER_DUP_ENTRY" || error.code === "23505") {
       return res.status(409).json({
         success: false,
         message: "A username or student profile value already exists.",
@@ -568,7 +568,7 @@ async function updateUser(req, res, next) {
       user: { id, username, role },
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "ER_DUP_ENTRY" || error.code === "23505") {
       return res.status(409).json({
         success: false,
         message: "A username or student profile value is already in use.",

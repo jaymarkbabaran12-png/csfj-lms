@@ -2,8 +2,8 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql2/promise");
 const session = require("express-session");
+const pool = require("./src/config/database");
 
 const authRoutes = require("./src/routes/authRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
@@ -93,20 +93,6 @@ app.use(
 // ==========================================
 // 4. DATABASE CONNECTION
 // ==========================================
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "Csfj_lms",
-  // Most hosted MySQL services (Aiven, TiDB Cloud, etc.) require SSL.
-  // Set DB_SSL=true in Render's environment variables.
-  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
-
 app.locals.db = pool;
 
 // ==========================================

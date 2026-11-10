@@ -222,7 +222,7 @@ async function createCourse(req, res, next) {
       },
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "ER_DUP_ENTRY" || error.code === "23505") {
       return res.status(409).json({
         success: false,
         message: "That course code already exists.",
@@ -349,7 +349,7 @@ async function updateCourse(req, res, next) {
       message: "Course updated successfully.",
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "ER_DUP_ENTRY" || error.code === "23505") {
       return res.status(409).json({
         success: false,
         message: "That course code already exists.",
@@ -416,7 +416,8 @@ async function deleteCourse(req, res, next) {
     // Other tables may also reference courses. Preserve those records.
     if (
       error.code === "ER_ROW_IS_REFERENCED_2" ||
-      error.code === "ER_ROW_IS_REFERENCED"
+      error.code === "ER_ROW_IS_REFERENCED" ||
+      error.code === "23503"
     ) {
       return res.status(409).json({
         success: false,

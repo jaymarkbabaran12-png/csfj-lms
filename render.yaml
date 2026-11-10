@@ -5,7 +5,7 @@ services:
     rootDir: backend
     plan: free
     buildCommand: npm install
-    startCommand: npm run migrate:hub-integration && npm start
+    startCommand: npm run db:migrate && npm run migrate:hub-integration && npm start
     healthCheckPath: /api/db-check
     autoDeploy: true
     envVars:
@@ -16,6 +16,8 @@ services:
       - key: HUB_API_KEY
         generateValue: true
       - key: HUB_STUDENT_RECORDS_API_KEY
+        sync: false
+      - key: DATABASE_URL
         sync: false
       - key: DB_HOST
         sync: false
